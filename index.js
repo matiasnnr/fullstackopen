@@ -1,3 +1,5 @@
+// heroku url: https://fullstackopen-api-express.herokuapp.com/api/notes
+
 const express = require('express');
 const app = express();
 const cors = require('cors')
@@ -21,6 +23,9 @@ const requestLogger = (request, response, next) => {
 
 // El middleware se utiliza así:
 app.use(requestLogger)
+
+// Para hacer que express muestre contenido estático, la página index.html y el JavaScript, etc., necesitamos un middleware integrado de express llamado static.
+app.use(express.static('build'))
 
 let notes = [
     {
