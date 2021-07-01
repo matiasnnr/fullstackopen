@@ -1,8 +1,14 @@
 // heroku url: https://fullstackopen-api-express.herokuapp.com/api/notes
 
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const cors = require('cors')
+const Note = require('./models/note')
+
+
+// Para hacer que express muestre contenido estático, la página index.html y el JavaScript, etc., necesitamos un middleware integrado de express llamado static.
+app.use(express.static('build'))
 
 app.use(cors())
 
@@ -10,6 +16,18 @@ app.use(cors())
 // Sin json-parser, la propiedad body no estaría definida.
 // const note = request.body
 app.use(express.json())
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id' })
+    } else if (error.name === 'ValidationError') {
+        return response.status(400).json({ error: error.message })
+    }
+
+    next(error)
+}
 
 // Implementemos nuestro propio middleware que imprime información sobre cada solicitud que se envía al servidor.
 // Middleware es una función que recibe tres parámetros:
@@ -24,8 +42,6 @@ const requestLogger = (request, response, next) => {
 // El middleware se utiliza así:
 app.use(requestLogger)
 
-// Para hacer que express muestre contenido estático, la página index.html y el JavaScript, etc., necesitamos un middleware integrado de express llamado static.
-app.use(express.static('build'))
 
 let notes = [
     {
@@ -67,54 +83,70 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/notes', (request, response) => {
-    response.json(notes);
-})
-
-app.get('/api/notes/:id', (request, response) => {
-    const id = Number(request.params.id);
-    const note = notes.find(note => {
-        // console.log(note.id, typeof note.id, id, typeof id, note.id === id)
-        return note.id === id
+    Note.find({}).then(notes => {
+        response.json(notes);
+        console.log(`notes`, notes)
     })
-
-    if (note) {
-        response.json(note)
-    } else {
-        response.status(404).end()
-    }
 })
 
-app.post('/api/notes', (request, response) => {
-    const maxId = notes.length > 0
-        ? Math.max(...notes.map(n => n.id))
-        : 0
+app.get('/api/notes/:id', (request, response, next) => {
+    const id = request.params.id;
+    Note.findById(id)
+        .then(note => {
+            if (note) {
+                response.json(note)
+            } else {
+                response.status(404).end()
+            }
+        })
+        .catch(error => next(error));
+})
 
-    // console.log(`request.headers`, request.headers)
+app.post('/api/notes', (request, response, next) => {
     const body = request.body
 
-    if (!body.content) {
-        return response.status(400).json({
-            error: 'content missing'
-        })
-    }
+    // ahora lo validamos desde el Schema de Mongoose
+    // if (body.content === undefined) {
+    //     return response.status(400).json({ error: 'content missing' })
+    // }
 
-    const note = {
+    const note = new Note({
         content: body.content,
         important: body.important || false,
         date: new Date(),
-        id: generateId(),
-    }
+    })
 
-    notes = notes.concat(note)
-
-    response.json(note)
+    note.save()
+        .then(savedNote => {
+            response.json(savedNote)
+        })
+        .catch(error => next(error));
 })
 
-app.delete('/api/notes/:id', (request, response) => {
-    const id = Number(request.params.id)
-    notes = notes.filter(note => note.id !== id)
+app.delete('/api/notes/:id', (request, response, next) => {
+    const id = request.params.id;
 
-    response.status(204).end()
+    Note.findByIdAndRemove(id)
+        .then(result => {
+            response.status(204).end()
+        })
+        .catch(error => next(error))
+})
+
+app.put('/api/notes/:id', (request, response, next) => {
+    const body = request.body
+
+    const note = {
+        content: body.content,
+        important: body.important,
+    }
+
+    // Hay un detalle importante con respecto al uso del método findByIdAndUpdate. De forma predeterminada, el parámetro updatedNote del controlador de eventos recibe el documento original sin las modificaciones. Agregamos el parámetro opcional { new: true }, que hará que nuestro controlador de eventos sea llamado con el nuevo documento modificado en lugar del original.
+    Note.findByIdAndUpdate(request.params.id, note, { new: true })
+        .then(updatedNote => {
+            response.json(updatedNote)
+        })
+        .catch(error => next(error))
 })
 
 const unknownEndpoint = (request, response) => {
@@ -122,6 +154,8 @@ const unknownEndpoint = (request, response) => {
 }
 
 app.use(unknownEndpoint)
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
