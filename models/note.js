@@ -6,7 +6,7 @@ console.log('connecting to', url)
 
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
     .then(result => {
-        console.log('connected to MongoDB')
+        console.log('connected to MongoDB ->', result)
     })
     .catch((error) => {
         console.log('error connecting to MongoDB:', error.message)
@@ -35,5 +35,5 @@ noteSchema.set('toJSON', {
 
 const Note = mongoose.model('Note', noteSchema)
 
-module.exports = Note;
+module.exports = Note
 // module.exports = mongoose.model('Note', noteSchema)

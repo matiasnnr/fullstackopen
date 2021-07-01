@@ -1,8 +1,8 @@
 // heroku url: https://fullstackopen-api-express.herokuapp.com/api/notes
 
-require('dotenv').config();
-const express = require('express');
-const app = express();
+require('dotenv').config()
+const express = require('express')
+const app = express()
 const cors = require('cors')
 const Note = require('./models/note')
 
@@ -43,54 +43,54 @@ const requestLogger = (request, response, next) => {
 app.use(requestLogger)
 
 
-let notes = [
-    {
-        id: 1,
-        content: "HTML is easy",
-        date: "2019-05-30T17:30:31.098Z",
-        important: true
-    },
-    {
-        id: 2,
-        content: "Browser can execute only Javascript",
-        date: "2019-05-30T18:39:34.091Z",
-        important: false
-    },
-    {
-        id: 3,
-        content: "GET and POST are the most important methods of HTTP protocol",
-        date: "2019-05-30T19:20:14.298Z",
-        important: true
-    },
-    {
-        id: 4,
-        content: "PUT is a method of HTTP protocol",
-        date: "2019-05-30T19:20:14.298Z",
-        important: true
-    }
-];
+// let notes = [
+//     {
+//         id: 1,
+//         content: 'HTML is easy',
+//         date: '2019-05-30T17:30:31.098Z',
+//         important: true
+//     },
+//     {
+//         id: 2,
+//         content: 'Browser can execute only Javascript',
+//         date: '2019-05-30T18:39:34.091Z',
+//         important: false
+//     },
+//     {
+//         id: 3,
+//         content: 'GET and POST are the most important methods of HTTP protocol',
+//         date: '2019-05-30T19:20:14.298Z',
+//         important: true
+//     },
+//     {
+//         id: 4,
+//         content: 'PUT is a method of HTTP protocol',
+//         date: '2019-05-30T19:20:14.298Z',
+//         important: true
+//     }
+// ]
 
 // ¿Qué está sucediendo exactamente en esa línea de código? notes.map(n => n.id) crea un nuevo array que contiene todos los ids de las notas. Math.max devuelve el valor máximo de los números que se le pasan. Sin embargo, notes.map(n => n.id) es un array, por lo que no se puede asignar directamente como parámetro a Math.max. El array se puede transformar en números individuales mediante el uso de la sintaxis de spread de los "tres puntos", ....
-const generateId = () => {
-    const maxId = notes.length > 0
-        ? Math.max(...notes.map(n => n.id))
-        : 0
-    return maxId + 1
-}
+// const generateId = () => {
+//     const maxId = notes.length > 0
+//         ? Math.max(...notes.map(n => n.id))
+//         : 0
+//     return maxId + 1
+// }
 
 app.get('/', (request, response) => {
-    response.send('<h1>Hello World</h1>');
+    response.send('<h1>Hello World</h1>')
 })
 
 app.get('/api/notes', (request, response) => {
     Note.find({}).then(notes => {
-        response.json(notes);
-        console.log(`notes`, notes)
+        response.json(notes)
+        console.log('notes', notes)
     })
 })
 
 app.get('/api/notes/:id', (request, response, next) => {
-    const id = request.params.id;
+    const id = request.params.id
     Note.findById(id)
         .then(note => {
             if (note) {
@@ -99,7 +99,7 @@ app.get('/api/notes/:id', (request, response, next) => {
                 response.status(404).end()
             }
         })
-        .catch(error => next(error));
+        .catch(error => next(error))
 })
 
 app.post('/api/notes', (request, response, next) => {
@@ -120,14 +120,15 @@ app.post('/api/notes', (request, response, next) => {
         .then(savedNote => {
             response.json(savedNote)
         })
-        .catch(error => next(error));
+        .catch(error => next(error))
 })
 
 app.delete('/api/notes/:id', (request, response, next) => {
-    const id = request.params.id;
+    const id = request.params.id
 
     Note.findByIdAndRemove(id)
         .then(result => {
+            console.log(result)
             response.status(204).end()
         })
         .catch(error => next(error))

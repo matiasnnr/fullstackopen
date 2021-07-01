@@ -27,10 +27,10 @@ const note = new Note({
     important: true,
 })
 
-// note.save().then(result => {
-//     console.log('note saved!')
-//     mongoose.connection.close()
-// });
+note.save().then(result => {
+    console.log('note saved!', result)
+    mongoose.connection.close()
+})
 
 // Note.find({ important: true }).then(result => {
 Note.find({}).then(result => {
