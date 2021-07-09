@@ -31,10 +31,20 @@ const errorHandler = (error, request, response, next) => {
 }
 
 const tokenHandler = (request, response, next) => {
+    let pathsWithoutToken = []
+
+    if (process.env.NODE_ENV === 'test') {
+        pathsWithoutToken = ['/api/login', '/api/register', 'api/testing/reset']
+    } else {
+        pathsWithoutToken = ['/api/login', '/api/register']
+    }
+
+    // console.log('pathsWithoutToken', pathsWithoutToken)
+
     // si intentamos loguearnos no validamos el token, pero para todas las otras rutas hacemos la validación con el middleware
     // después si el token es válido ingresamos la información del token en el request a través del objeto payload
     // de manera que todas las rutas que exijan token puedan obtener la información desde request.payload
-    if (request.path === '/api/login') {
+    if (pathsWithoutToken.includes(request.path)) {
         next()
     } else {
         if (!request.get('authorization')) return response.status(401).json({ error: 'invalid token' })

@@ -42,6 +42,11 @@ app.use('/api/notes', notesRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
 
+if (process.env.NODE_ENV === 'test') {
+    const testingRouter = require('./controllers/testing')
+    app.use('/api/testing', testingRouter)
+}
+
 // para mostrar un mensaje cuando no se encuentra la ruta en la solicitud
 app.use(middleware.unknownEndpoint)
 // para controlar los errores de las peticiones y mostrarlas en pantalla
